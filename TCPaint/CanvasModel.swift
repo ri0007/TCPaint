@@ -11,18 +11,43 @@ import UIKit
 class CanvasModel {
     static let sharedInstance = CanvasModel()
     
-    private var undoStack = [UIBezierPath]()
-    private var redoStack = [UIBezierPath]()
+    private(set) var undoStack = [UIBezierPath]()
+    private(set) var redoStack = [UIBezierPath]()
     
     func undo() {
+        guard let undoPath = undoStack.popLast() else {
+            return
+        }
+        redoStack.append(undoPath)
+    }
+    
+    func redo() -> UIBezierPath? {
+        guard let redoPath = redoStack.popLast() else {
+            return nil
+        }
+        undoStack.append(redoPath)
         
+        return redoPath
     }
     
-    func redo() {
-    
+    func addUndoStack(bezierPath:UIBezierPath) {
+        undoStack.append(bezierPath)
     }
     
-    func StackAllClear() {
+    func addRedoStack(bezierPath:UIBezierPath) {
+        redoStack.append(bezierPath)
+    }
     
+    func allClearUndoStack() {
+        undoStack.removeAll()
+    }
+    
+    func allClearRedoStack() {
+        redoStack.removeAll()
+    }
+    
+    func allClearBothStack() {
+        allClearRedoStack()
+        allClearUndoStack()
     }
 }
