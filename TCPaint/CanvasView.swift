@@ -8,6 +8,10 @@
 
 import UIKit
 
+protocol  CanvasViewDelegate: class {
+    func didDrawLine(sender: CanvasView)
+}
+
 class CanvasView: UIImageView {
     let canvasModel = CanvasModel.sharedInstance
     var bezierPath: UIBezierPath!
@@ -15,6 +19,8 @@ class CanvasView: UIImageView {
     var penColor = UIColor.blackColor()
     var lastTouchPoint: CGPoint!
     var lastDrawImage: UIImage!
+    
+    weak var delegate: CanvasViewDelegate!
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -78,7 +84,7 @@ class CanvasView: UIImageView {
         
         bezierPath = nil
         
-        // MARK: TODO:ボタンのEnable設定
+        delegate?.didDrawLine(self)
     }
     
     func drawLine(path:UIBezierPath) {
@@ -88,6 +94,37 @@ class CanvasView: UIImageView {
         path.stroke()
         image = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
+    }
+    
+    func undo() -> Bool {
+        canvasModel.undo()
+        
+        lastDrawImage = nil
+        image = nil
+        
+        for path:UIBezierPath in canvasModel.undoStack {
+            drawLine(path)
+            lastDrawImage = image
+        }
+        
+        return canvasModel.undoStack.count > 0
+    }
+    
+    func redo() -> Bool? {
+        guard let redoPath = canvasModel.redo() else {
+            return nil
+        }
+        
+        drawLine(redoPath)
+        lastDrawImage = self.image
+        
+        return canvasModel.redoStack.count > 0
+    }
+    
+    func allClear() {
+        canvasModel.allClearBothStack()
+        image = nil
+        lastDrawImage = nil
     }
     
     /*

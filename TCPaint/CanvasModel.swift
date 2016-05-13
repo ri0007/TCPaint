@@ -21,11 +21,13 @@ class CanvasModel {
         redoStack.append(undoPath)
     }
     
-    func redo() {
+    func redo() -> UIBezierPath? {
         guard let redoPath = redoStack.popLast() else {
-            return
+            return nil
         }
         undoStack.append(redoPath)
+        
+        return redoPath
     }
     
     func addUndoStack(bezierPath:UIBezierPath) {
